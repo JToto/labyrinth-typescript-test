@@ -3,8 +3,8 @@
 /// <reference path="wall.ts" />
 ///<reference path="point.ts" />
 
-const WIDTH = 15;
-const HEIGHT = 15;
+const WIDTH = 50;
+const HEIGHT = 30;
 
 const OFFSET = 10;
 
@@ -16,7 +16,7 @@ class Labyrinth {
 
     canvas: HTMLCanvasElement;
 
-    constructor(canvas : HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
     }
 
@@ -65,72 +65,68 @@ class Labyrinth {
             }
         }
 
-        
+
 
         var done = false;
         var newPoint = null;
         while (!done) {
-            var pointsChecked: string[] = [];
             var pointFound = false;
-         
+
             let round = 0;
 
-            while (pointsChecked.length !== this.points.length && !pointFound) {
+            var pointsToCheck: string[] = this.points.slice(0);
+
+            while (pointsToCheck.length > 0 && !pointFound) {
 
                 var pointToCheck: Point
 
                 if (newPoint === null || round !== 0) {
-
                     // No path left to extend. Starting a new one!
-                    var randomPointKey = Math.floor(Math.random() * (this.points.length - 1)) + 0;
-                    pointToCheck = new Point(Number(this.points[randomPointKey].split("/")[0]),
-                        Number(this.points[randomPointKey].split("/")[1]));
-                        pointsChecked.push(pointToCheck.x + "/" + pointToCheck.y);
+                    var randomPointKey = Math.floor(Math.random() * (pointsToCheck.length - 1)) + 0;
+                    pointToCheck = new Point(Number(pointsToCheck[randomPointKey].split("/")[0]),
+                        Number(pointsToCheck[randomPointKey].split("/")[1]));
+                    pointsToCheck.splice(randomPointKey, 1);
                 } else {
 
                     // Try to extend current path.
                     pointToCheck = newPoint;
                 }
-                
-                let directionsChecked: number[] = [];
-                while (directionsChecked.length !== 4 && !pointFound) {
+                let directions = [1, 2, 3, 4];
+                Labyrinth.shuffle(directions);
+                while (directions.length > 0 && !pointFound) {
+                    let randomDirection = directions[0];
+                    directions.splice(0, 1);
 
-                    let randomDirection = Math.floor(Math.random() * 4) + 1;
-
-                    if (directionsChecked.indexOf(randomDirection) === -1) {
-                        // Direction not checked yet.
-                        directionsChecked.push(randomDirection);
-
-                        if (randomDirection === 1) {
-                            // Upper
-                            if (this.isPointFree(pointToCheck.getUpperPoint())) {
-                                pointFound = true;
-                                newPoint = pointToCheck.getUpperPoint();
-                                this.addWall(new Wall(pointToCheck, pointToCheck.getUpperPoint()));
-                            }
-
-                        } else if (randomDirection === 2) {
-                            // Lower
-                            if (this.isPointFree(pointToCheck.getLowerPoint())) {
-                                pointFound = true;
-                                newPoint = pointToCheck.getLowerPoint();
-                                this.addWall(new Wall(pointToCheck, pointToCheck.getLowerPoint()));
-                            }
-                        } else if (randomDirection === 3) {
-                            // Right
-                            if (this.isPointFree(pointToCheck.getRightPoint())) {
-                                pointFound = true;
-                                newPoint = pointToCheck.getRightPoint();
-                                this.addWall(new Wall(pointToCheck, pointToCheck.getRightPoint()));
-                            }
-                        } else if (randomDirection === 4) {
-                            // Left
-                            if (this.isPointFree(pointToCheck.getLeftPoint())) {
-                                pointFound = true;
-                                newPoint = pointToCheck.getLeftPoint();
-                                this.addWall(new Wall(pointToCheck, pointToCheck.getLeftPoint()));
-                            }
+                    if (randomDirection === 1) {
+                        // Upper
+                        if (this.isPointFree(pointToCheck.getUpperPoint())) {
+                            pointFound = true;
+                            newPoint = pointToCheck.getUpperPoint();
+                            this.addWall(new Wall(pointToCheck, pointToCheck.getUpperPoint()));
                         }
+
+                    } else if (randomDirection === 2) {
+                        // Lower
+                        if (this.isPointFree(pointToCheck.getLowerPoint())) {
+                            pointFound = true;
+                            newPoint = pointToCheck.getLowerPoint();
+                            this.addWall(new Wall(pointToCheck, pointToCheck.getLowerPoint()));
+                        }
+                    } else if (randomDirection === 3) {
+                        // Right
+                        if (this.isPointFree(pointToCheck.getRightPoint())) {
+                            pointFound = true;
+                            newPoint = pointToCheck.getRightPoint();
+                            this.addWall(new Wall(pointToCheck, pointToCheck.getRightPoint()));
+                        }
+                    } else if (randomDirection === 4) {
+                        // Left
+                        if (this.isPointFree(pointToCheck.getLeftPoint())) {
+                            pointFound = true;
+                            newPoint = pointToCheck.getLeftPoint();
+                            this.addWall(new Wall(pointToCheck, pointToCheck.getLeftPoint()));
+                        }
+
                     }
                 }
                 if (!pointFound) {
@@ -142,10 +138,10 @@ class Labyrinth {
             if (!pointFound) {
                 done = true;
             }
-            
+
         }
 
-        console.log(this.points);
+        console.log(this.walls);
     }
 
     addWall(wall: Wall) {
@@ -163,6 +159,9 @@ class Labyrinth {
 
     draw() {
         let ctx = this.canvas.getContext("2d");
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.strokeStyle = "white";
         for (let wall of this.walls) {
             this.drawLine(ctx, wall.start, wall.end);
         }
@@ -173,5 +172,12 @@ class Labyrinth {
         ctx.moveTo(OFFSET + start.x * FIELD_SIZE, OFFSET + start.y * FIELD_SIZE);
         ctx.lineTo(OFFSET + end.x * FIELD_SIZE, OFFSET + end.y * FIELD_SIZE);
         ctx.stroke();
+    }
+
+    static shuffle(a) {
+        for (let i = a.length; i; i--) {
+            let j = Math.floor(Math.random() * i);
+            [a[i - 1], a[j]] = [a[j], a[i - 1]];
+        }
     }
 }
