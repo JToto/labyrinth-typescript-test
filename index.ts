@@ -1,6 +1,5 @@
 'use strict';
 ///<reference path="labyrinth.ts" />
 
-let labyrinth = new Labyrinth();
+let labyrinth = new Labyrinth(<HTMLCanvasElement> document.getElementById("canvas"));
 labyrinth.generate();
-labyrinth.draw(<HTMLCanvasElement> document.getElementById("canvas"));
