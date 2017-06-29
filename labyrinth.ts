@@ -67,22 +67,23 @@ class Labyrinth {
 
 
 
-        var done = false;
-        var newPoint = null;
+        let done = false;
+        let newPoint = null;
+        let doNotCheck: string[] = [];
         while (!done) {
-            var pointFound = false;
+            let pointFound = false;
 
             let round = 0;
 
-            var pointsToCheck: string[] = this.points.slice(0);
+            let pointsToCheck: string[] = this.points.slice(0);
 
             while (pointsToCheck.length > 0 && !pointFound) {
 
-                var pointToCheck: Point
+                let pointToCheck: Point
 
                 if (newPoint === null || round !== 0) {
                     // No path left to extend. Starting a new one!
-                    var randomPointKey = Math.floor(Math.random() * (pointsToCheck.length - 1)) + 0;
+                    let randomPointKey = Math.floor(Math.random() * (pointsToCheck.length - 1)) + 0;
                     pointToCheck = new Point(Number(pointsToCheck[randomPointKey].split("/")[0]),
                         Number(pointsToCheck[randomPointKey].split("/")[1]));
                     pointsToCheck.splice(randomPointKey, 1);
@@ -145,6 +146,7 @@ class Labyrinth {
     }
 
     addWall(wall: Wall) {
+        let that = this;
         this.walls.push(wall);
         let pointStr1: string = wall.start.x + "/" + wall.start.y
         let pointStr2: string = wall.end.x + "/" + wall.end.y
@@ -154,7 +156,10 @@ class Labyrinth {
         if (this.points.indexOf(pointStr2) === -1) {
             this.points.push(pointStr2);
         }
-        this.draw();
+
+        setTimeout(function () {
+            that.draw();
+        }, 0);
     }
 
     draw() {
