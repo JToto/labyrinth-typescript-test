@@ -3,25 +3,30 @@
 /// <reference path="wall.ts" />
 ///<reference path="point.ts" />
 
-const WIDTH = 20;
-const HEIGHT = 20;
+let WIDTH = 20;
+let HEIGHT = 10;
 
-const OFFSET = 10;
+const OFFSET = 20;
 
-const FIELD_SIZE = 40;
+const FIELD_SIZE = 30;
 
 class Labyrinth {
     walls: Wall[];
     points: string[];
 
+    round: number;
+
     playerPosition: Point;
 
     canvas: HTMLCanvasElement;
 
+
+
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.playerPosition = new Point(2, 2);
         document.addEventListener('keydown', this.keyboardInput);
+        this.round = 0;
+        document.getElementById("level").innerHTML = (this.round + 1).toString();
     }
 
     keyboardInput = (event: KeyboardEvent) => {
@@ -55,7 +60,16 @@ class Labyrinth {
         else if (event.keyCode == 32) {
             this.playerPosition = new Point(2, 2);
         }
+
         this.draw();
+
+        if (this.playerPosition.equals(new Point(WIDTH - 1, Math.ceil(HEIGHT / 2) - 1))) {
+            this.round++;
+            document.getElementById("level").innerHTML = (this.round + 1).toString();
+            WIDTH++;
+            HEIGHT++;
+            this.generate();
+        }
     }
 
     isPointFree(point: Point) {
@@ -75,6 +89,7 @@ class Labyrinth {
 
     generate() {
 
+        this.playerPosition = new Point(0, Math.ceil(HEIGHT / 2) - 1);
 
         this.walls = [];
         this.points = [];
@@ -94,14 +109,14 @@ class Labyrinth {
 
         // left wall
         for (let y = 1; y <= HEIGHT; y++) {
-            if (y !== Math.floor(HEIGHT / 2)) {
+            if (y !== Math.ceil(HEIGHT / 2)) {
                 this.addWall(new Wall(new Point(0, y - 1), new Point(0, y)));
             }
         }
 
         // right wall
         for (let y = 1; y <= HEIGHT; y++) {
-            if (y !== Math.floor(HEIGHT / 2)) {
+            if (y !== Math.ceil(HEIGHT / 2)) {
                 this.addWall(new Wall(new Point(WIDTH, y - 1), new Point(WIDTH, y)));
             }
         }
@@ -208,14 +223,15 @@ class Labyrinth {
             this.drawLine(ctx, wall.start, wall.end);
         }
         this.drawPlayer(ctx);
-        
     }
 
     drawLine(ctx: any, start: Point, end: Point) {
+        ctx.lineWidth=2;
         ctx.beginPath();
         ctx.moveTo(OFFSET + start.x * FIELD_SIZE, OFFSET + start.y * FIELD_SIZE);
         ctx.lineTo(OFFSET + end.x * FIELD_SIZE, OFFSET + end.y * FIELD_SIZE);
         ctx.stroke();
+        
     }
 
     drawPlayer(ctx: any) {
