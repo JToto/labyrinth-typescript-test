@@ -3,21 +3,59 @@
 /// <reference path="wall.ts" />
 ///<reference path="point.ts" />
 
-const WIDTH = 50;
-const HEIGHT = 30;
+const WIDTH = 20;
+const HEIGHT = 20;
 
 const OFFSET = 10;
 
-const FIELD_SIZE = 20;
+const FIELD_SIZE = 40;
 
 class Labyrinth {
     walls: Wall[];
     points: string[];
 
+    playerPosition: Point;
+
     canvas: HTMLCanvasElement;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
+        this.playerPosition = new Point(2, 2);
+        document.addEventListener('keydown', this.keyboardInput);
+    }
+
+    keyboardInput = (event: KeyboardEvent) => {
+        console.log(event);
+        // PRESS LEFT ARROW
+        if (event.keyCode == 37) {
+            if (this.playerPosition.x - 1 >= 0 && this.playerCanGoLeft()) {
+                this.playerPosition.x--;
+            }
+        }
+        // PRESS UP ARROW
+        else if (event.keyCode == 38) {
+            if (this.playerPosition.y - 1 >= 0 && this.playerCanGoUp()) {
+                this.playerPosition.y--;
+            }
+        }
+        // PRESS RIGHT ARROW
+        else if (event.keyCode == 39) {
+            if (this.playerPosition.x + 1 < WIDTH && this.playerCanGoRight()) {
+                this.playerPosition.x++;
+            }
+        }
+        // PRESS DOWN ARROW
+        else if (event.keyCode == 40) {
+            if (this.playerPosition.y + 1 < HEIGHT && this.playerCanGoDown()) {
+                this.playerPosition.y++;
+            }
+        }
+
+        // PRESS SPACE
+        else if (event.keyCode == 32) {
+            this.playerPosition = new Point(2, 2);
+        }
+        this.draw();
     }
 
     isPointFree(point: Point) {
@@ -36,8 +74,11 @@ class Labyrinth {
 
 
     generate() {
+
+
         this.walls = [];
         this.points = [];
+        
         // Generate static borders
 
         // upper wall
@@ -142,7 +183,7 @@ class Labyrinth {
 
         }
 
-        console.log(this.walls);
+        this.draw();
     }
 
     addWall(wall: Wall) {
@@ -156,10 +197,6 @@ class Labyrinth {
         if (this.points.indexOf(pointStr2) === -1) {
             this.points.push(pointStr2);
         }
-
-        setTimeout(function () {
-            that.draw();
-        }, 0);
     }
 
     draw() {
@@ -170,6 +207,8 @@ class Labyrinth {
         for (let wall of this.walls) {
             this.drawLine(ctx, wall.start, wall.end);
         }
+        this.drawPlayer(ctx);
+        
     }
 
     drawLine(ctx: any, start: Point, end: Point) {
@@ -179,6 +218,51 @@ class Labyrinth {
         ctx.stroke();
     }
 
+    drawPlayer(ctx: any) {
+        ctx.fillStyle = "yellow";
+        ctx.strokeStyle = "white";
+        ctx.beginPath();
+        ctx.arc(OFFSET + (FIELD_SIZE / 2) + (this.playerPosition.x * FIELD_SIZE),
+            OFFSET + (FIELD_SIZE / 2) + (this.playerPosition.y * FIELD_SIZE), FIELD_SIZE / 3, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.fill();
+    }
+
+    playerCanGoDown() {
+        let lowerWall = new Wall(new Point(this.playerPosition.x, this.playerPosition.y + 1),
+                                        new Point(this.playerPosition.x + 1, this.playerPosition.y + 1));
+        return !this.hasWall(lowerWall);
+    }
+
+    playerCanGoUp() {
+        let upperWall = new Wall(new Point(this.playerPosition.x, this.playerPosition.y),
+                                        new Point(this.playerPosition.x + 1, this.playerPosition.y));
+        return !this.hasWall(upperWall);
+    }
+
+    playerCanGoRight() {
+        let rightWall = new Wall(new Point(this.playerPosition.x + 1, this.playerPosition.y),
+                                        new Point(this.playerPosition.x + 1, this.playerPosition.y + 1));
+        return !this.hasWall(rightWall);
+    }
+
+    playerCanGoLeft() {
+        let leftWall = new Wall(new Point(this.playerPosition.x, this.playerPosition.y),
+                                        new Point(this.playerPosition.x, this.playerPosition.y + 1));
+        return !this.hasWall(leftWall);
+    }
+
+    hasWall(wall: Wall) {
+        for (let walli of this.walls) {
+            if (walli.start.equals(wall.start) && walli.end.equals(wall.end)
+             || walli.start.equals(wall.end) && walli.end.equals(wall.start)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     static shuffle(a) {
         for (let i = a.length; i; i--) {
             let j = Math.floor(Math.random() * i);
@@ -186,3 +270,4 @@ class Labyrinth {
         }
     }
 }
+
